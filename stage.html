@@ -1239,7 +1239,16 @@ function applyCmds(cmds) {
       // THE PRESENT verb: show-and-tell. Stage (or find) the thing, fly
       // it center stage, enlarge it, dim everything else. Ends when the
       // person grabs it, it leaves the board, or a new present/clear.
-      let t = c.title ? findItem(c.title) : null;
+      // Deliberately NOT findItem() here: its "nothing matched, fall back
+      // to the last-touched item" behaviour (meant for yank/hover) would
+      // make an unmatched title silently hijack whatever's already up
+      // instead of creating the new thing being presented (found 2026-09-13).
+      let t = null;
+      if (c.title) {
+        const tt = c.title.toLowerCase();
+        t = items.find(i => (i.def.title || "").toLowerCase().includes(tt) ||
+                             (i.def.src || "").toLowerCase().includes(tt));
+      }
       if (!t && c.src) {
         t = isModelSrc(c.src) ? makeModel(c.src, c.title, c.mode, c.lift)
                               : makeImage(c.src, c.title);
